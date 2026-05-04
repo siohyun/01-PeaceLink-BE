@@ -1,0 +1,50 @@
+HELP.md
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.stsbeans
+.sts4-cache
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+### VS Code ###
+.vscode/
+
+### Secret Files (개인/팀 보안 정보) ###
+# 로컬 개발용 보안 설정 파일 제외
+application-secret.yml
+application-local.yml
+
+# 로컬 DB나 API 키 설정용 properties 제외
+application-secret.properties
+
+### OS-specific files ###
+.DS_Store
+Thumbs.db
