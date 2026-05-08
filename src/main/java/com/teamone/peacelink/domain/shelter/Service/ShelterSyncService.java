@@ -42,7 +42,8 @@ public class ShelterSyncService {
 
                 // 운영상태 확인 (운영중만 isAvailable=true)
                 boolean isAvailable = item.getOperStatus() == null
-                        || item.getOperStatus().contains("운영");
+                        || item.getOperStatus().contains("운영")
+                        || item.getOperStatus().contains("사용중");
 
                 Optional<Shelter> existing = shelterRepository.findByCode(item.getCode());
                 if (existing.isPresent()) {

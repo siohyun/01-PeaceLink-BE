@@ -8,8 +8,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.util.UriComponentsBuilder;
 
-
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,6 +26,9 @@ public class ShelterApiClient {
 
     @Value("${public-data.shelter.page-size}")
     private int pageSize;
+
+    @Value("${public-data.shelter.url}")
+    private String baseUrl;
 
     public List<ShelterItem> fetchAll() {
         List<ShelterItem> result = new ArrayList<>();
@@ -55,14 +59,21 @@ public class ShelterApiClient {
 
     private ShelterApiResponse fetch(int pageNo) {
         try {
-            String url = "https://apis.data.go.kr/1741000/CivilDefenseShelter/getCivilDefenseShelterList"
-                    + "?serviceKey=" + serviceKey
-                    + "&pageNo=" + pageNo
-                    + "&numOfRows=" + pageSize
-                    + "&type=json";
+            URI uri = UriComponentsBuilder
+                    .fromUriString(baseUrl)
+                    .queryParam("serviceKey", serviceKey)
+                    .queryParam("pageNo", pageNo)
+                    .queryParam("numOfRows", pageSize)
+                    .queryParam("returnType", "JSON")
+                    .queryParam("cond[ROAD_NM_WHOL_ADDR::LIKE]", "서울특별시 중구")  // ← 추가
+                    .build(false)
+                    .toUri();
+
+            log.debug("대피소 API 요청 URL: {}", uri);
+            log.info("대피소 API 요청 URL: {}", uri);
 
             return restClient.get()
-                    .uri(url)
+                    .uri(uri)
                     .retrieve()
                     .body(ShelterApiResponse.class);
 
