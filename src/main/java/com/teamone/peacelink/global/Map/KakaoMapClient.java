@@ -32,4 +32,18 @@ public class KakaoMapClient implements MapApiClient {
                 .retrieve()
                 .body(String.class);
     }
+
+    public String reverseGeocode(Double lat, Double lng) {
+        return restClient.get()
+                .uri(u -> u
+                        .scheme("https")
+                        .host("dapi.kakao.com")
+                        .path("/v2/local/geo/coord2address.json")
+                        .queryParam("x", lng)
+                        .queryParam("y", lat)
+                        .build())
+                .header("Authorization", "KakaoAK " + kakaoKey)
+                .retrieve()
+                .body(String.class);
+    }
 }

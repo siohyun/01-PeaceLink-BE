@@ -31,6 +31,7 @@ public class DisasterMsgApiClient {
                             .queryParam("returnType", "json")
                             .queryParam("pageNo", 1)
                             .queryParam("numOfRows", 100)
+                            .queryParam("rgnNm", "서울특별시")
                             .build())
                     .retrieve()
                     .body(DisasterMsgApiResponse.class);

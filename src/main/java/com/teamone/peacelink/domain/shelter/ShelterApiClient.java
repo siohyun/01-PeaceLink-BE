@@ -65,7 +65,6 @@ public class ShelterApiClient {
                     .queryParam("pageNo", pageNo)
                     .queryParam("numOfRows", pageSize)
                     .queryParam("returnType", "JSON")
-                    .queryParam("cond[ROAD_NM_WHOL_ADDR::LIKE]", "서울특별시 중구")  // ← 추가
                     .build(false)
                     .toUri();
 
