@@ -28,8 +28,7 @@ kakao:
   mobility-url: https://apis-navi.kakaomobility.com/v1/directions
 
 osrm:
-  url: http://router.project-osrm.org/route/v1/foot
-
+  url: ${OSRM_URL:http://router.project-osrm.org/route/v1/foot}
 springdoc:
   swagger-ui:
     path: /swagger-ui.html
@@ -42,3 +41,13 @@ springdoc:
 
 safetydata:
   service-key:${SAFETYDATA_SERVICE_KEY}
+
+gemini:
+  api-key: ${GEMINI_API_KEY}
+
+aws:
+  access-key: ${AWS_ACCESS_KEY}
+  secret-key: ${AWS_SECRET_KEY}
+  s3:
+    bucket: ${AWS_S3_BUCKET}    # 예: peacelink-media
+    region: ${AWS_S3_REGION}    # 예: ap-northeast-2
