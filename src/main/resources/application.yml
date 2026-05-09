@@ -11,6 +11,9 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
         format_sql: true
+  task:
+    scheduling:
+      enabled: true
 
 public-data:
   service-key: ${PUBLIC_DATA_SERVICE_KEY}
@@ -36,3 +39,6 @@ springdoc:
     path: /v3/api-docs
   default-consumes-media-type: application/json
   default-produces-media-type: application/json
+
+safetydata:
+  service-key:${SAFETYDATA_SERVICE_KEY}

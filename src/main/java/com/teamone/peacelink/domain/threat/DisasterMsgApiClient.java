@@ -17,7 +17,7 @@ public class DisasterMsgApiClient {
 
     private final RestClient restClient;
 
-    @Value("${public-data.service-key}")
+    @Value("${safetydata.service-key:}")
     private String serviceKey;
 
     public List<DisasterMsgItem> fetchRecent() {
@@ -25,28 +25,23 @@ public class DisasterMsgApiClient {
             DisasterMsgApiResponse response = restClient.get()
                     .uri(u -> u
                             .scheme("https")
-                            .host("apis.data.go.kr")
-                            .path("/1741000/DisasterMsg3/getDisasterMsg1List")
+                            .host("www.safetydata.go.kr")
+                            .path("/V2/api/DSSP-IF-10941")  // 신규 엔드포인트
                             .queryParam("serviceKey", serviceKey)
+                            .queryParam("returnType", "json")
                             .queryParam("pageNo", 1)
                             .queryParam("numOfRows", 100)
-                            .queryParam("type", "json")
                             .build())
                     .retrieve()
-                    .body(DisasterMsgApiResponse.class); // block() 제거, body()로 교체
+                    .body(DisasterMsgApiResponse.class);
 
-            // ?. 대신 Java null 체크
-            if (response == null
-                    || response.getResponse() == null
-                    || response.getResponse().getBody() == null
-                    || response.getResponse().getBody().getItems() == null) {
+            if (response == null || response.getBody() == null) {
                 return List.of();
             }
-
-            return response.getResponse().getBody().getItems().getItem();
+            return response.getBody();
 
         } catch (Exception e) {
-            log.error("재난문자 API 호출 실패", e);
+            log.error("긴급재난문자 API 호출 실패", e);
             return List.of();
         }
     }

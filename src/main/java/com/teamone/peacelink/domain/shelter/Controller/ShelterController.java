@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/evacuation")
 @RequiredArgsConstructor
@@ -21,6 +23,14 @@ public class ShelterController {
             @RequestParam Double lat,
             @RequestParam Double lng) {
         return ResponseEntity.ok(shelterService.getNearestShelter(lat, lng));
+    }
+
+    @GetMapping("/shelters/nearby")
+    public ResponseEntity<List<ShelterResponse>> getNearbyShelters(
+            @RequestParam Double lat,
+            @RequestParam Double lng,
+            @RequestParam(defaultValue = "5") int limit) {
+        return ResponseEntity.ok(shelterService.getNearbyShelters(lat, lng, limit));
     }
 }
 

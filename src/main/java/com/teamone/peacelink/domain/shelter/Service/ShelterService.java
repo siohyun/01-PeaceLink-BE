@@ -36,4 +36,11 @@ public class ShelterService {
                 * Math.sin(dLng / 2) * Math.sin(dLng / 2);
         return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     }
+
+    public List<ShelterResponse> getNearbyShelters(Double lat, Double lng, int limit) {
+        return shelterRepository.findNearestShelters(lat, lng, limit)
+                .stream()
+                .map(s -> ShelterResponse.of(s, calculateDistance(lat, lng, s.getLat(), s.getLng())))
+                .toList();
+    }
 }
