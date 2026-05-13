@@ -1,6 +1,10 @@
 package com.teamone.peacelink.domain.threat.Controller;
 
+import com.teamone.peacelink.domain.threat.DTO.DisasterMsgItem;
+import com.teamone.peacelink.domain.threat.DTO.EmergencyAlertResponse;
+import com.teamone.peacelink.domain.threat.DTO.SituationResponse;
 import com.teamone.peacelink.domain.threat.DTO.ThreatMarkerResponse;
+import com.teamone.peacelink.domain.threat.DisasterMsgApiClient;
 import com.teamone.peacelink.domain.threat.Entity.ThreatAnalysis;
 import com.teamone.peacelink.domain.threat.Repository.ThreatAnalysisRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +23,7 @@ import java.util.List;
 public class ThreatController {
 
     private final ThreatAnalysisRepository threatAnalysisRepository;
+    private final DisasterMsgApiClient disasterMsgApiClient;
 
     @GetMapping("/threats/nearby")
     public ResponseEntity<List<ThreatMarkerResponse>> getNearbyThreats(
@@ -35,6 +40,47 @@ public class ThreatController {
                             lat, lng, t.getTriggerLat(), t.getTriggerLng());
                     return ThreatMarkerResponse.of(t, dist);
                 })
+                .toList();
+
+        return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/threats/alerts/latest")
+    public ResponseEntity<EmergencyAlertResponse> getLatestAlert(
+            @RequestParam Double lat,
+            @RequestParam Double lng) {
+
+        List<DisasterMsgItem> items = disasterMsgApiClient.fetchRecent();
+        if (items.isEmpty()) return ResponseEntity.noContent().build();
+
+        DisasterMsgItem latest = items.get(0);
+        return ResponseEntity.ok(EmergencyAlertResponse.fromDisasterMsg(latest));
+    }
+
+    // 기존 /threats/alerts 도 교체
+    @GetMapping("/threats/alerts")
+    public ResponseEntity<List<EmergencyAlertResponse>> getAlerts(
+            @RequestParam Double lat,
+            @RequestParam Double lng) {
+
+        List<DisasterMsgItem> items = disasterMsgApiClient.fetchRecent();
+
+        List<EmergencyAlertResponse> alerts = items.stream()
+                .map(EmergencyAlertResponse::fromDisasterMsg)
+                .toList();
+
+        return ResponseEntity.ok(alerts);
+    }
+
+    @GetMapping("/threats/situations")
+    public ResponseEntity<List<SituationResponse>> getSituations(
+            @RequestParam Double lat,
+            @RequestParam Double lng) {
+
+        List<DisasterMsgItem> items = disasterMsgApiClient.fetchRecent();
+
+        List<SituationResponse> result = items.stream()
+                .map(SituationResponse::fromDisasterMsg)
                 .toList();
 
         return ResponseEntity.ok(result);

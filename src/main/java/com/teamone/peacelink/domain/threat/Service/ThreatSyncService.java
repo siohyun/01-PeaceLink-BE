@@ -99,4 +99,5 @@ public class ThreatSyncService {
                 .findFirst()
                 .orElse(null);
     }
+
 }

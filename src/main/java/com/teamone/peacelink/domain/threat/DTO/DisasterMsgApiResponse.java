@@ -7,13 +7,14 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
+
 @Getter
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class DisasterMsgApiResponse {
 
-    private Header header;
-    private List<DisasterMsgItem> body; // flat 배열
+    private Header header;          // ✅ Lombok @Getter로 getHeader() 자동 생성됨
+    private List<DisasterMsgItem> body;
 
     @Getter
     @NoArgsConstructor
