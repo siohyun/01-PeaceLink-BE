@@ -1,48 +1,158 @@
 package com.teamone.peacelink.app.translation;
 
-import com.teamone.peacelink.app.user.User;
-import com.teamone.peacelink.app.user.UserRepository;
-import com.teamone.peacelink.app.service.GeminiService;
+import com.teamone.peacelink.app.service.TranslationService;
+import com.teamone.peacelink.global.Exception.NoiseTooLoudException;
+import com.teamone.peacelink.global.Exception.STTFailException;
+import com.teamone.peacelink.global.Exception.UnsupportedLanguageException;
+import lombok.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/v1/translation")
+@RequestMapping("/api/translation")
 @RequiredArgsConstructor
 public class TranslationController {
 
-    private final SosRequestRepository sosRequestRepository;
-    private final UserRepository userRepository;
-    private final GeminiService geminiService;
+    private final TranslationService translationService;
 
-    @PostMapping("/translate")
-    public ResponseEntity<String> translate(@RequestBody Map<String, String> request) {
-        String text = request.get("text");
-        String targetLang = request.getOrDefault("targetLang", "Korean");
-        String prompt = String.format("너는 재난 및 구호 전문 통역사입니다. 다음 텍스트를 '%s'로 번역하세요: %s", targetLang, text);
-        return ResponseEntity.ok(geminiService.callGemini(prompt));
+    /**
+     * COMM-01: 오프라인 특수 번역
+     */
+    @PostMapping("/offline-special")
+    public ResponseEntity<?> offlineSpecialTranslate(@RequestBody OfflineTranslateRequest request) {
+        try {
+            String result = translationService.specialTermTranslate(
+                    request.getText(),
+                    request.getSourceLang(),
+                    request.getTargetLang(),
+                    request.getDomain()
+            );
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "original", request.getText(),
+                    "translated", result,
+                    "domain", request.getDomain()
+            ));
+        } catch (UnsupportedLanguageException e) {
+            return ResponseEntity.ok(Map.of(
+                    "success", false,
+                    "fallback", "symbol_list",
+                    "symbols", translationService.getSymbolCommunicationList(request.getDomain()),
+                    "message", e.getMessage()
+            ));
+        }
     }
 
+    /**
+     * COMM-02: 온디바이스 양방향 통역 (오디오)
+     */
+    @PostMapping(value = "/interpret", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> interpret(
+            @RequestPart("audio") MultipartFile audioFile,
+            @RequestPart("sourceLang") String sourceLang,
+            @RequestPart("targetLang") String targetLang
+    ) {
+        try {
+            InterpretResult result = translationService.interpretAudio(
+                    audioFile, sourceLang, targetLang);
+            return ResponseEntity.ok(result);
+        } catch (NoiseTooLoudException e) {
+            return ResponseEntity.ok(Map.of(
+                    "success", false,
+                    "errorType", "NOISE_TOO_LOUD",
+                    "message", "주변이 너무 시끄럽습니다. 조용한 곳에서 다시 시도하거나 필담 모드를 사용하세요.",
+                    "fallbackMode", "TEXT_INPUT"
+            ));
+        } catch (STTFailException e) {
+            return ResponseEntity.ok(Map.of(
+                    "success", false,
+                    "errorType", "STT_FAIL",
+                    "message", "음성 인식에 실패했습니다. 다시 말씀해 주세요.",
+                    "retry", true
+            ));
+        }
+    }
+
+    /**
+     * COMM-02: 텍스트 필담 모드 폴백
+     */
+    @PostMapping("/interpret/text")
+    public ResponseEntity<?> interpretText(@RequestBody TextInterpretRequest request) {
+        String translated = translationService.specialTermTranslate(
+                request.getText(),
+                request.getSourceLang(),
+                request.getTargetLang(),
+                "general"
+        );
+        byte[] ttsAudio = translationService.textToSpeech(translated, request.getTargetLang());
+
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "original", request.getText(),
+                "translated", translated,
+                "hasAudio", ttsAudio != null && ttsAudio.length > 0
+        ));
+    }
+
+    /**
+     * SOS-01: 다국어 디지털 구조 요청
+     */
     @PostMapping("/sos")
-    public ResponseEntity<SosRequest> createSos(@RequestBody Map<String, Object> request) {
-        Long userId = Long.valueOf(request.get("userId").toString());
-        Double lat = Double.valueOf(request.get("latitude").toString());
-        Double lon = Double.valueOf(request.get("longitude").toString());
-        String status = request.get("statusCode").toString();
-        String originalMsg = request.get("originalMsg").toString();
+    public ResponseEntity<SosResponse> sendSosRequest(@RequestBody SosRequestDto dto) {
+        SosResponse response = translationService.processSosRequest(dto);
+        return ResponseEntity.ok(response);
+    }
 
-        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User Not Found"));
+    /**
+     * SOS-01: 구조 요청 이력 조회
+     */
+    @GetMapping("/sos/history/{userId}")
+    public ResponseEntity<?> getSosHistory(@PathVariable String userId) {
+        return ResponseEntity.ok(translationService.getSosHistory(userId));
+    }
 
-        String prompt = "구조대를 위해 다음 긴급 요청을 영어와 한국어로 번역 및 요약하세요: " + originalMsg;
-        String translatedMsg = geminiService.callGemini(prompt);
+    // ===== DTO 클래스들 =====
 
-        SosRequest sosRequest = SosRequest.builder()
-                .user(user).latitude(lat).longitude(lon)
-                .statusCode(status).originalMsg(originalMsg).translatedMsg(translatedMsg)
-                .build();
+    @Data
+    public static class OfflineTranslateRequest {
+        private String text;
+        private String sourceLang;
+        private String targetLang;
+        private String domain;
+    }
 
-        return ResponseEntity.ok(sosRequestRepository.save(sosRequest));
+    @Data
+    public static class TextInterpretRequest {
+        private String text;
+        private String sourceLang;
+        private String targetLang;
+    }
+
+    @Data
+    public static class SosRequestDto {
+        private String userId;
+        private String situationType;
+        private String message;
+        private String targetLanguage;
+        private String outputType;
+        private double latitude;
+        private double longitude;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class InterpretResult {
+        private boolean success;
+        private String recognizedText;
+        private String translatedText;
+        private byte[] audioData;
+        private String sttMethod;
     }
 }
