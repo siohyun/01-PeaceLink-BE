@@ -27,7 +27,7 @@ jobs:
       - name: Install Railway CLI & Deploy
         run: |
           npm install -g @railway/cli
-          railway up --detach
+          railway up --service=peacelink --detach
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
           RAILWAY_PROJECT_ID: "ae49bd2b-ea15-411c-b092-7b79a83a39c5"
