@@ -6,10 +6,10 @@ spring:
     name: our-backend-project
 
   datasource:
-    url: jdbc:h2:mem:testdb
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
+    url: ${DB_URL}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: ${MYSQL USER}
+    password: ${MYSQL PASSWORD}
 
   jpa:
     hibernate:
@@ -18,3 +18,7 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
+  hugging face:
+    api:
+      token: ${HUGGING FACE_API_TOKEN}
