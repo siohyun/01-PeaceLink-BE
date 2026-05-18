@@ -27,6 +27,7 @@ jobs:
       - name: Install Railway CLI & Deploy
         run: |
           npm install -g @railway/cli
-          railway deploy --service "peacelink" --attach
+          railway deploy
         env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }} # 3단계에서 세팅할 비밀키
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_SERVICE_NAME: peacelink
