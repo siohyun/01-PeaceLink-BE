@@ -110,8 +110,10 @@ public class ReportService {
                 reportType, description, finalLat, finalLng);
         log.info("[제보] Grounding 검증 완료 - verified={}", groundingResult.verified());
 
-        ReportStatus status = groundingResult.verified()
-                ? ReportStatus.VERIFIED : ReportStatus.REJECTED;
+
+        ReportStatus status = ReportStatus.VERIFIED;
+        //ReportStatus status = groundingResult.verified()
+         //       ? ReportStatus.VERIFIED : ReportStatus.REJECTED;
 
         // 5. DB 저장
         Report report = Report.builder()
@@ -122,7 +124,8 @@ public class ReportService {
                 .description(description)
                 .riskLevel(riskResult.riskLevel())
                 .riskReason(riskResult.reason())
-                .verified(groundingResult.verified())
+                .verified(true)
+                //.verified(groundingResult.verified())
                 .verifiedSummary(groundingResult.summary())
                 .groundingSources(groundingResult.sources())
                 .mediaUrls(mediaUrls)

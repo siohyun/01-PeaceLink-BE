@@ -1,5 +1,7 @@
 package com.teamone.peacelink.domain.threat.Controller;
 
+import com.teamone.peacelink.domain.report.Entity.ReportStatus;
+import com.teamone.peacelink.domain.report.Repository.ReportRepository;
 import com.teamone.peacelink.domain.threat.DTO.DisasterMsgItem;
 import com.teamone.peacelink.domain.threat.DTO.EmergencyAlertResponse;
 import com.teamone.peacelink.domain.threat.DTO.SituationResponse;
@@ -8,17 +10,18 @@ import com.teamone.peacelink.domain.threat.DisasterMsgApiClient;
 import com.teamone.peacelink.domain.threat.Entity.ThreatAnalysis;
 import com.teamone.peacelink.domain.threat.Repository.ThreatAnalysisRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import com.teamone.peacelink.global.Map.KakaoMapClient;
 import com.teamone.peacelink.global.Map.KakaoAddressResponse;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/evacuation")
 @RequiredArgsConstructor
@@ -27,6 +30,11 @@ public class ThreatController {
     private final ThreatAnalysisRepository threatAnalysisRepository;
     private final DisasterMsgApiClient disasterMsgApiClient;
     private final KakaoMapClient kakaoMapClient;
+    private final ReportRepository reportRepository;
+
+    private static final int REPORT_MERGE_HOURS = 6;
+
+    // ── 공개 엔드포인트 ────────────────────────────────────────────────────
 
     @GetMapping("/threats/nearby")
     public ResponseEntity<List<ThreatMarkerResponse>> getNearbyThreats(
@@ -53,34 +61,48 @@ public class ThreatController {
             @RequestParam Double lat,
             @RequestParam Double lng) {
 
-        List<DisasterMsgItem> items =
-                disasterMsgApiClient.fetchRecent(lat, lng);
+        // 최신 승인 제보가 있으면 우선 반환
+        Optional<EmergencyAlertResponse> reportAlert = reportRepository
+                .findByStatusAndCreatedAtAfter(
+                        ReportStatus.VERIFIED,
+                        LocalDateTime.now().minusHours(REPORT_MERGE_HOURS))
+                .stream()
+                .findFirst()
+                .map(EmergencyAlertResponse::fromReport);
+
+        if (reportAlert.isPresent()) return ResponseEntity.ok(reportAlert.get());
+
+        // 없으면 공공 API
+        List<DisasterMsgItem> items = disasterMsgApiClient.fetchRecent(lat, lng);
         if (items.isEmpty()) return ResponseEntity.noContent().build();
 
-        List<DisasterMsgItem> nearby =
-                filterByLocation(items, lat, lng);
-
-        DisasterMsgItem latest =
-                nearby.isEmpty() ? items.get(0) : nearby.get(0);
+        List<DisasterMsgItem> nearby = filterByLocation(items, lat, lng);
+        DisasterMsgItem latest = nearby.isEmpty() ? items.get(0) : nearby.get(0);
         return ResponseEntity.ok(EmergencyAlertResponse.fromDisasterMsg(latest));
     }
 
-    // 기존 /threats/alerts 도 교체
     @GetMapping("/threats/alerts")
     public ResponseEntity<List<EmergencyAlertResponse>> getAlerts(
             @RequestParam Double lat,
             @RequestParam Double lng) {
 
-        List<DisasterMsgItem> items =
-                disasterMsgApiClient.fetchRecent(lat, lng);
-
+        // 공공 API 알림
+        List<DisasterMsgItem> items = disasterMsgApiClient.fetchRecent(lat, lng);
         items = filterByLocation(items, lat, lng);
 
-        List<EmergencyAlertResponse> alerts = items.stream()
-                .map(EmergencyAlertResponse::fromDisasterMsg)
-                .toList();
+        List<EmergencyAlertResponse> result = new ArrayList<>(
+                items.stream().map(EmergencyAlertResponse::fromDisasterMsg).toList());
 
-        return ResponseEntity.ok(alerts);
+        // 승인된 시민 제보를 앞에 병합
+        reportRepository
+                .findByStatusAndCreatedAtAfter(
+                        ReportStatus.VERIFIED,
+                        LocalDateTime.now().minusHours(REPORT_MERGE_HOURS))
+                .stream()
+                .map(EmergencyAlertResponse::fromReport)
+                .forEach(r -> result.add(0, r));
+
+        return ResponseEntity.ok(result);
     }
 
     @GetMapping("/threats/situations")
@@ -89,20 +111,25 @@ public class ThreatController {
             @RequestParam Double lng) {
 
         List<DisasterMsgItem> items = disasterMsgApiClient.fetchRecent(lat, lng);
-
-        // 위치 필터 시도
         List<DisasterMsgItem> filtered = filterByLocation(items, lat, lng);
-
-        // 필터 결과가 너무 적으면 전체 사용
         List<DisasterMsgItem> toUse = filtered.size() >= 3 ? filtered : items;
 
-        List<SituationResponse> result = toUse.stream()
-                .limit(10)   // 최신 10개
-                .map(SituationResponse::fromDisasterMsg)
-                .toList();
+        List<SituationResponse> result = new ArrayList<>(
+                toUse.stream().limit(10).map(SituationResponse::fromDisasterMsg).toList());
+
+        // 승인된 시민 제보를 앞에 병합
+        reportRepository
+                .findByStatusAndCreatedAtAfter(
+                        ReportStatus.VERIFIED,
+                        LocalDateTime.now().minusHours(REPORT_MERGE_HOURS))
+                .stream()
+                .map(SituationResponse::fromReport)
+                .forEach(r -> result.add(0, r));
 
         return ResponseEntity.ok(result);
     }
+
+    // ── private 유틸 메서드 ───────────────────────────────────────────────
 
     private Double calculateDistance(Double lat1, Double lng1,
                                      Double lat2, Double lng2) {
@@ -114,28 +141,25 @@ public class ThreatController {
                 * Math.sin(dLng / 2) * Math.sin(dLng / 2);
         return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     }
+
     private List<DisasterMsgItem> filterByLocation(
             List<DisasterMsgItem> items,
             Double lat,
-            Double lng
-    ) {
+            Double lng) {
 
         KakaoAddressResponse.Address address =
                 kakaoMapClient.reverseGeocode(lat, lng);
 
         if (address == null) return items;
 
-        String city = address.getRegion_2depth_name();
+        String city     = address.getRegion_2depth_name();
         String district = address.getRegion_3depth_name();
 
         return items.stream()
                 .filter(item -> {
                     String area = item.getAreaName();
-
                     if (area == null) return false;
-
-                    return area.contains(city)
-                            || area.contains(district);
+                    return area.contains(city) || area.contains(district);
                 })
                 .toList();
     }
