@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
+import com.teamone.peacelink.global.Map.KakaoAddressResponse;
 
 @Component
 @RequiredArgsConstructor
@@ -33,8 +34,9 @@ public class KakaoMapClient implements MapApiClient {
                 .body(String.class);
     }
 
-    public String reverseGeocode(Double lat, Double lng) {
-        return restClient.get()
+    public KakaoAddressResponse.Address reverseGeocode(Double lat, Double lng) {
+
+        KakaoAddressResponse response = restClient.get()
                 .uri(u -> u
                         .scheme("https")
                         .host("dapi.kakao.com")
@@ -44,6 +46,14 @@ public class KakaoMapClient implements MapApiClient {
                         .build())
                 .header("Authorization", "KakaoAK " + kakaoKey)
                 .retrieve()
-                .body(String.class);
+                .body(KakaoAddressResponse.class);
+
+        if (response == null ||
+                response.getDocuments() == null ||
+                response.getDocuments().isEmpty()) {
+            return null;
+        }
+
+        return response.getDocuments().get(0).getAddress();
     }
 }

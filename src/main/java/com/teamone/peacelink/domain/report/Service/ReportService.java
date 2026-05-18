@@ -19,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -142,5 +143,12 @@ public class ReportService {
     public List<ReportResponse> getNearbyVerifiedReports(Double lat, Double lng, Double radiusKm) {
         return reportRepository.findVerifiedReportsNearby(lat, lng, radiusKm)
                 .stream().map(ReportResponse::of).toList();
+    }
+
+    public List<ReportResponse> getReportsByUserId(String userId) {
+        return reportRepository.findByUserIdBinary(userId)
+                .stream()
+                .map(ReportResponse::of)
+                .collect(Collectors.toList());
     }
 }

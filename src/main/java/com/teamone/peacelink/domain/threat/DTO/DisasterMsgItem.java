@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 public class DisasterMsgItem {
 
     @JsonProperty("SN")
-    private String sn;            // ✅ 일련번호 (추가)
+    private Long sn;   // String → Long
 
     @JsonProperty("MSG_CN")
     private String msg;           // 재난문자 내용

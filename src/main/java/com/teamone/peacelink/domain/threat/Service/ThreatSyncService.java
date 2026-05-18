@@ -33,37 +33,45 @@ public class ThreatSyncService {
 
     // 광역시도 기준 대표 좌표
     private static final Map<String, double[]> REGION_COORDS = Map.ofEntries(
-            Map.entry("서울", new double[]{37.5665, 126.9780}),
-            Map.entry("부산", new double[]{35.1796, 129.0756}),
-            Map.entry("인천", new double[]{37.4563, 126.7052}),
-            Map.entry("대구", new double[]{35.8714, 128.6014}),
-            Map.entry("광주", new double[]{35.1595, 126.8526}),
-            Map.entry("대전", new double[]{36.3504, 127.3845}),
-            Map.entry("울산", new double[]{35.5384, 129.3114}),
-            Map.entry("세종", new double[]{36.4801, 127.2890}),
-            Map.entry("경기", new double[]{37.4138, 127.5183}),
-            Map.entry("강원", new double[]{37.8228, 128.1555}),
-            Map.entry("충북", new double[]{36.6357, 127.4913}),
-            Map.entry("충남", new double[]{36.5184, 126.8000}),
-            Map.entry("전북", new double[]{35.7175, 127.1530}),
-            Map.entry("전남", new double[]{34.8679, 126.9910}),
-            Map.entry("경북", new double[]{36.4919, 128.8889}),
-            Map.entry("경남", new double[]{35.4606, 128.2132}),
-            Map.entry("제주", new double[]{33.4890, 126.4983})
+            // 광역시도 (전체 명칭)
+            Map.entry("서울특별시",   new double[]{37.5665, 126.9780}),
+            Map.entry("부산광역시",   new double[]{35.1796, 129.0756}),
+            Map.entry("인천광역시",   new double[]{37.4563, 126.7052}),
+            Map.entry("대구광역시",   new double[]{35.8714, 128.6014}),
+            Map.entry("광주광역시",   new double[]{35.1595, 126.8526}),
+            Map.entry("대전광역시",   new double[]{36.3504, 127.3845}),
+            Map.entry("울산광역시",   new double[]{35.5384, 129.3114}),
+            Map.entry("세종특별자치시", new double[]{36.4801, 127.2890}),
+            Map.entry("경기도",      new double[]{37.4138, 127.5183}),
+            Map.entry("강원도",      new double[]{37.8228, 128.1555}),
+            Map.entry("강원특별자치도", new double[]{37.8228, 128.1555}),
+            Map.entry("충청북도",     new double[]{36.6357, 127.4913}),
+            Map.entry("충청남도",     new double[]{36.5184, 126.8000}),
+            Map.entry("전라북도",     new double[]{35.7175, 127.1530}),
+            Map.entry("전북특별자치도", new double[]{35.7175, 127.1530}),
+            Map.entry("전라남도",     new double[]{34.8679, 126.9910}),
+            Map.entry("경상북도",     new double[]{36.4919, 128.8889}),
+            Map.entry("경상남도",     new double[]{35.4606, 128.2132}),
+            Map.entry("제주특별자치도", new double[]{33.4890, 126.4983})
     );
 
-    @Scheduled(fixedDelay = 300_000)
+    @Scheduled(fixedDelay = 1800000)
     public void syncScheduled() {
         log.info("재난문자 동기화 시작");
-        sync();
+        try {
+            sync();
+        } catch (Exception e) {
+            log.warn("재난문자 동기화 실패 (스킵): {}", e.getMessage());
+        }
     }
 
     @Transactional
     public void sync() {
-        List<DisasterMsgItem> items = disasterMsgApiClient.fetchRecent();
+        List<DisasterMsgItem> items =
+                disasterMsgApiClient.fetchRecent(null, null);
 
         for (DisasterMsgItem item : items) {
-            String dangerLevel = classifyDangerLevel(item.getMsg());
+            String dangerLevel = mapDangerLevel(item.getEmergencyStep());
             if (dangerLevel == null) continue;
 
             double[] coords = resolveCoords(item.getAreaName());
@@ -84,8 +92,9 @@ public class ThreatSyncService {
 
     private double[] resolveCoords(String areaName) {
         if (areaName == null) return null;
+
         return REGION_COORDS.entrySet().stream()
-                .filter(e -> areaName.contains(e.getKey()))
+                .filter(e -> areaName.contains(e.getKey()))  // 이미 이 방향 — OK
                 .map(Map.Entry::getValue)
                 .findFirst()
                 .orElse(null);
@@ -98,6 +107,18 @@ public class ThreatSyncService {
                 .map(Map.Entry::getValue)
                 .findFirst()
                 .orElse(null);
+    }
+
+    private String mapDangerLevel(String step) {
+
+        if (step == null) return "LOW";
+
+        return switch (step) {
+            case "위급재난" -> "CRITICAL";
+            case "긴급재난" -> "HIGH";
+            case "안전안내" -> "MEDIUM";
+            default -> "LOW";
+        };
     }
 
 }

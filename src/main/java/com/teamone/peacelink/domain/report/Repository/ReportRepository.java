@@ -16,7 +16,10 @@ public interface ReportRepository extends JpaRepository<Report, UUID> {
 
     List<Report> findByStatusOrderByCreatedAtDesc(ReportStatus status);
 
-    // 반경 내 검증된 제보 조회 (위험 지도 표시용)
+    // ✅ 추가: BINARY UUID로 저장된 user_id 검색
+    @Query(value = "SELECT * FROM reports WHERE user_id = UNHEX(REPLACE(:userId, '-', '')) ORDER BY created_at DESC", nativeQuery = true)
+    List<Report> findByUserIdBinary(@Param("userId") String userId);
+
     @Query(value = """
             SELECT * FROM reports r
             WHERE r.verified = true

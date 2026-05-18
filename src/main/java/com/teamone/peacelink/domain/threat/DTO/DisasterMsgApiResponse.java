@@ -13,7 +13,12 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class DisasterMsgApiResponse {
 
-    private Header header;          // ✅ Lombok @Getter로 getHeader() 자동 생성됨
+    private Header header;
+
+    private int numOfRows;
+    private int pageNo;
+    private int totalCount;         // ✅ body 밖으로 이동
+
     private List<DisasterMsgItem> body;
 
     @Getter
@@ -22,6 +27,6 @@ public class DisasterMsgApiResponse {
     public static class Header {
         private String resultCode;
         private String resultMsg;
-        private int totalCount;
+        private String errorMsg;
     }
 }
