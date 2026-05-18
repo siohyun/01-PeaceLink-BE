@@ -18,7 +18,3 @@ spring:
     properties:
       hibernate:
         format_sql: true
-
-  huggingface:
-    api:
-      token: hf_YOUR_WRITE_TOKEN_HERE
