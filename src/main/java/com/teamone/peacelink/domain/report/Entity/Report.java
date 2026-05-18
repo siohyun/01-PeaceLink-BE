@@ -27,7 +27,7 @@ public class Report {
     private User user;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "report_type", length = 50)
     private ReportType reportType;
 
     @Column(nullable = false)
