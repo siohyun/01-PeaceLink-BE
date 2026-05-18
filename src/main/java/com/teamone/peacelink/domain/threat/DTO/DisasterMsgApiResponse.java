@@ -7,13 +7,19 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
+
 @Getter
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class DisasterMsgApiResponse {
 
     private Header header;
-    private List<DisasterMsgItem> body; // flat 배열
+
+    private int numOfRows;
+    private int pageNo;
+    private int totalCount;         // ✅ body 밖으로 이동
+
+    private List<DisasterMsgItem> body;
 
     @Getter
     @NoArgsConstructor
@@ -21,6 +27,6 @@ public class DisasterMsgApiResponse {
     public static class Header {
         private String resultCode;
         private String resultMsg;
-        private int totalCount;
+        private String errorMsg;
     }
 }

@@ -10,6 +10,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import com.teamone.peacelink.global.Map.KakaoAddressResponse;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -55,9 +56,22 @@ public class UserService {
         user.updateLocation(lat, lng);
 
         String address = null;
+
         try {
-            address = kakaoMapClient.reverseGeocode(lat, lng);
+
+            KakaoAddressResponse.Address kakaoAddress =
+                    kakaoMapClient.reverseGeocode(lat, lng);
+
+            if (kakaoAddress != null) {
+
+                address =
+                        kakaoAddress.getRegion_1depth_name() + " "
+                                + kakaoAddress.getRegion_2depth_name() + " "
+                                + kakaoAddress.getRegion_3depth_name();
+            }
+
         } catch (Exception e) {
+
             log.warn("역지오코딩 실패: {}", e.getMessage());
         }
 

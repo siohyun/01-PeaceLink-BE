@@ -52,8 +52,8 @@ public class ReportController {
     }
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<ReportResponse>> getReportsByUser(@PathVariable UUID userId) {
-        return ResponseEntity.ok(reportService.getReportsByUser(userId));
+    public ResponseEntity<List<ReportResponse>> getReportsByUser(@PathVariable String userId) {
+        return ResponseEntity.ok(reportService.getReportsByUserId(userId));
     }
 
     @GetMapping("/nearby")
