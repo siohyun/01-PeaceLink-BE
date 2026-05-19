@@ -1,7 +1,11 @@
+
+server:
+  port: ${PORT:8080}
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/peace_db?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true
-    username: root
+    url: ${DB_URL}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: ${DB_USER}
     password: ${DB_PASSWORD}
   jpa:
     hibernate:
@@ -51,3 +55,9 @@ aws:
   s3:
     bucket: ${AWS_S3_BUCKET}    # 예: peacelink-media
     region: ${AWS_S3_REGION}    # 예: ap-northeast-2
+        format_sql: true
+
+  hugging face:
+    api:
+      token: ${HUGGING FACE_API_TOKEN}
+
