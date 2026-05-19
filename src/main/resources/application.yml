@@ -6,7 +6,7 @@ spring:
     name: our-backend-project
 
   datasource:
-    url: ${DB_URL}
+    url: ${DB_HOST}
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: ${DB_USER}
     password: ${DB_PASSWORD}
@@ -19,6 +19,48 @@ spring:
       hibernate:
         format_sql: true
 
-  hugging face:
-    api:
-      token: ${HUGGING FACE_API_TOKEN}
+  task:
+    scheduling:
+      enabled: true
+
+public-data:
+  service-key: ${PUBLIC_DATA_SERVICE_KEY}
+  shelter:
+    url: https://apis.data.go.kr/1741000/civil_defense_shelter_info/info
+    page-size: 10
+  disaster-msg:
+    url: https://apis.data.go.kr/1741000/DisasterMsg3/getDisasterMsg1List
+
+kakao:
+  rest-api-key: ${KAKAO_REST_API_KEY}
+  mobility-url: https://apis-navi.kakaomobility.com/v1/directions
+
+osrm:
+  url: ${OSRM_URL:http://router.project-osrm.org/route/v1/foot}
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  api-docs:
+    path: /v3/api-docs
+  default-consumes-media-type: application/json
+  default-produces-media-type: application/json
+
+safetydata:
+  service-key: ${SAFETYDATA_SERVICE_KEY}
+
+gemini:
+  api-key: ${GEMINI_API_KEY}
+
+aws:
+  access-key: ${AWS_ACCESS_KEY}
+  secret-key: ${AWS_SECRET_KEY}
+  s3:
+    bucket: ${AWS_S3_BUCKET}
+    region: ${AWS_S3_REGION}
+
+huggingface:
+  api:
+    token: ${HUGGING_FACE_API_TOKEN}
