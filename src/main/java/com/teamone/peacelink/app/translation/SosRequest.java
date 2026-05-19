@@ -3,6 +3,7 @@ package com.teamone.peacelink.app.translation;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "sos_requests")
@@ -12,28 +13,29 @@ import java.time.LocalDateTime;
 public class SosRequest {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.UUID)
     private Long id;
 
-    @Column(nullable = false)
-    private String userId;
+    @Column(name = "user_id", nullable = false, columnDefinition = "BINARY(16)")
+    private UUID userId;
 
-    @Column(nullable = false)
+    @Column(name = "situation_type", nullable = false)
     private String situationType;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "original_message", columnDefinition = "TEXT")
     private String originalMessage;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "translated_message", columnDefinition = "TEXT")
     private String translatedMessage;
 
-    @Column(nullable = false)
+    @Column(name = "target_language", nullable = false)
     private String targetLanguage;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "output_type", nullable = false)
     private OutputType outputType;
 
-    @Column(nullable = false)
+    @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
     @PrePersist

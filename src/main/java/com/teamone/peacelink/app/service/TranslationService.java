@@ -99,7 +99,6 @@ public class TranslationService {
             throw new STTFailException("오디오 파일 읽기 실패");
         }
 
-        // 노이즈 레벨 분석
         double noiseLevel = analyzeNoiseLevel(audioBytes);
         log.info("노이즈 레벨: {}", noiseLevel);
 
@@ -107,17 +106,13 @@ public class TranslationService {
             throw new NoiseTooLoudException("주변 소음이 너무 심합니다");
         }
 
-        // STT 수행
         String recognizedText;
         String sttMethod;
 
         if (noiseLevel < noiseThreshold) {
-            // 기기 내장 STT (클라이언트에서 수행 후 텍스트 전달 방식 권장)
-            // 서버 수신 오디오는 Whisper로 처리
             recognizedText = performWhisperSTT(audioBytes, sourceLang);
             sttMethod = "device";
         } else {
-            // 노이즈 중간 → Whisper API
             log.info("노이즈 수준이 높아 Whisper API로 전환");
             recognizedText = performWhisperSTT(audioBytes, sourceLang);
             sttMethod = "whisper_api";
@@ -127,11 +122,9 @@ public class TranslationService {
             throw new STTFailException("음성 인식 결과가 없습니다");
         }
 
-        // 번역
         String translated = specialTermTranslate(
                 recognizedText, sourceLang, targetLang, "disaster");
 
-        // TTS
         byte[] ttsAudio = textToSpeech(translated, targetLang);
 
         return TranslationController.InterpretResult.builder()
@@ -220,7 +213,7 @@ public class TranslationService {
         );
 
         SosRequest entity = SosRequest.builder()
-                .userId(dto.getUserId())
+                .userId(dto.getUserId())                              // UUID 그대로 할당
                 .situationType(dto.getSituationType())
                 .originalMessage(baseMessage)
                 .translatedMessage(translated)
@@ -235,7 +228,7 @@ public class TranslationService {
         }
 
         return SosResponse.builder()
-                .requestId(entity.getId())
+                .requestId(entity.getId())                           // UUID 반환
                 .originalMessage(baseMessage)
                 .translatedMessage(translated)
                 .targetLanguage(dto.getTargetLanguage())
@@ -267,7 +260,11 @@ public class TranslationService {
         );
     }
 
-    public List<SosRequest> getSosHistory(String userId) {
+    /**
+     * SOS 이력 조회
+     * - userId: String → UUID
+     */
+    public List<SosRequest> getSosHistory(UUID userId) {
         return sosRequestRepository.findByUserIdOrderByCreatedAtDesc(userId);
     }
 

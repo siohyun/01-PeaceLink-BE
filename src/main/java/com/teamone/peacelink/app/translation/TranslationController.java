@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/translation")
@@ -108,14 +109,6 @@ public class TranslationController {
         return ResponseEntity.ok(response);
     }
 
-//    /**
-//     * SOS-01: 구조 요청 이력 조회
-//     */
-//    @GetMapping("/sos/history/{userId}")
-//    public ResponseEntity<?> getSosHistory(@PathVariable String userId) {
-//        return ResponseEntity.ok(translationService.getSosHistory(userId));
-//    }
-
     // ===== DTO 클래스들 =====
 
     @Data
@@ -135,7 +128,8 @@ public class TranslationController {
 
     @Data
     public static class SosRequestDto {
-        private String userId;
+        // String → UUID: ERD user 테이블 PK 타입 일치
+        private UUID userId;
         private String situationType;
         private String message;
         private String targetLanguage;

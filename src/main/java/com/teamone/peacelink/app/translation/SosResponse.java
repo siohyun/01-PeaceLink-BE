@@ -2,6 +2,8 @@ package com.teamone.peacelink.app.translation;
 
 import lombok.*;
 
+import java.util.UUID;
+
 @Getter @Setter
 @NoArgsConstructor @AllArgsConstructor
 @Builder
