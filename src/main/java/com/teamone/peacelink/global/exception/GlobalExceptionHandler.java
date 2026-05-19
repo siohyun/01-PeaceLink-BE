@@ -1,4 +1,4 @@
-package com.teamone.peacelink.global.exception;
+package com.teamone.peacelink.global.Exception;
 
 import lombok.extern.slf4j.Slf4j;   // ← 추가
 import org.springframework.http.HttpStatus;

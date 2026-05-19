@@ -1,4 +1,4 @@
-package com.teamone.peacelink.global.config;
+package com.teamone.peacelink.global.Config;
 
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;

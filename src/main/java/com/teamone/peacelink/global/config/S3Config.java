@@ -1,4 +1,4 @@
-package com.teamone.peacelink.global.config;
+package com.teamone.peacelink.global.Config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

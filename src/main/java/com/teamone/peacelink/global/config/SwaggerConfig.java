@@ -1,4 +1,4 @@
-package com.teamone.peacelink.global.config;
+package com.teamone.peacelink.global.Config;
 
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
