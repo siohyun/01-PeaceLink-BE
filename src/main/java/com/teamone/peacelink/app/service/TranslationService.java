@@ -23,16 +23,16 @@ import java.util.*;
 @Slf4j
 public class TranslationService {
 
-    @Value("${huggingface.api.token}")
+    @Value("${huggingface.api.token:mock_token}")
     private String hfToken;
 
-    @Value("${huggingface.model.id}")
+    @Value("${huggingface.model.id:seohyun01/peacelink-gemma-medical}")
     private String gemmaModelId;
 
-    @Value("${stt.noise.threshold}")
+    @Value("${stt.noise.threshold:0.4}")
     private double noiseThreshold;
 
-    @Value("${stt.whisper.api.url}")
+    @Value("${stt.whisper.api.url:https://api-inference.huggingface.co/models/openai/whisper-large-v3}")
     private String whisperApiUrl;
 
     private final RestTemplate restTemplate;

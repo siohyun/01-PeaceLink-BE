@@ -6,15 +6,75 @@ spring:
     name: our-backend-project
 
   datasource:
-    url: jdbc:h2:mem:testdb
+    url: jdbc:h2:mem:testdb;MODE=MySQL
     driver-class-name: org.h2.Driver
     username: sa
     password:
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create-drop
     show-sql: true
     properties:
       hibernate:
         format_sql: true
+
+  task:
+    scheduling:
+      enabled: true
+
+# -----------------------------------------------------------------
+# 💡 여기서부터 중요! 'spring:' 밖으로 꺼내서 독자적인 계층으로 격리했습니다.
+# 💡 로컬 실행을 방해하던 모든 미등록 변수들에 ':mock_value' 보호막을 씌웠습니다.
+# -----------------------------------------------------------------
+
+huggingface:
+  api:
+    token: ${HUGGINGFACE_API_TOKEN:mock_token_value} # 띄어쓰기 있던 철자 수정
+  model:
+    id: ${HUGGINGFACE_MODEL_ID:seohyun01/peacelink-gemma-medical}
+
+stt:
+  noise:
+    threshold: ${STT_NOISE_THRESHOLD:0.4}
+  whisper:
+    api:
+      url: ${STT_WHISPER_API_URL:https://api-inference.huggingface.co/models/openai/whisper-large-v3}
+
+public-data:
+  service-key: ${PUBLIC_DATA_SERVICE_KEY:mock_public_key}
+  shelter:
+    url: https://apis.data.go.kr/1741000/civil_defense_shelter_info/info
+    page-size: 10
+  disaster-msg:
+    url: https://apis.data.go.kr/1741000/DisasterMsg3/getDisasterMsg1List
+
+kakao:
+  rest-api-key: ${KAKAO_REST_API_KEY:mock_kakao_key}
+  mobility-url: https://apis-navi.kakaomobility.com/v1/directions
+
+osrm:
+  url: ${OSRM_URL:http://router.project-osrm.org/route/v1/foot}
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  api-docs:
+    path: /v3/api-docs
+  default-consumes-media-type: application/json
+  default-produces-media-type: application/json
+
+safetydata:
+  service-key: ${SAFETYDATA_SERVICE_KEY:mock_safety_key} # 콜론(:) 뒤 띄어쓰기 문법 교정
+
+gemini:
+  api-key: ${GEMINI_API_KEY:mock_gemini_key}
+
+aws:
+  access-key: ${AWS_ACCESS_KEY:mock_aws_key}
+  secret-key: ${AWS_SECRET_KEY:mock_aws_secret}
+  s3:
+    bucket: ${AWS_S3_BUCKET:peacelink-media}
+    region: ${AWS_S3_REGION:ap-northeast-2}
