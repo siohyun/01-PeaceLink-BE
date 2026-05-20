@@ -1,19 +1,19 @@
 server:
-  port: 8080
+  port: ${PORT:8080}
 
 spring:
   application:
     name: our-backend-project
 
   datasource:
-    url: jdbc:h2:mem:testdb;MODE=MySQL
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
+    url: ${DB_URL}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
 
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
     show-sql: true
     properties:
       hibernate:
@@ -22,11 +22,6 @@ spring:
   task:
     scheduling:
       enabled: true
-
-# -----------------------------------------------------------------
-# 💡 여기서부터 중요! 'spring:' 밖으로 꺼내서 독자적인 계층으로 격리했습니다.
-# 💡 로컬 실행을 방해하던 모든 미등록 변수들에 ':mock_value' 보호막을 씌웠습니다.
-# -----------------------------------------------------------------
 
 huggingface:
   api:
@@ -42,7 +37,7 @@ stt:
       url: ${STT_WHISPER_API_URL:https://api-inference.huggingface.co/models/openai/whisper-large-v3}
 
 public-data:
-  service-key: ${PUBLIC_DATA_SERVICE_KEY:mock_public_key}
+  service-key: ${PUBLIC_DATA_SERVICE_KEY}
   shelter:
     url: https://apis.data.go.kr/1741000/civil_defense_shelter_info/info
     page-size: 10
@@ -50,7 +45,7 @@ public-data:
     url: https://apis.data.go.kr/1741000/DisasterMsg3/getDisasterMsg1List
 
 kakao:
-  rest-api-key: ${KAKAO_REST_API_KEY:mock_kakao_key}
+  rest-api-key: ${KAKAO_REST_API_KEY}
   mobility-url: https://apis-navi.kakaomobility.com/v1/directions
 
 osrm:
@@ -67,14 +62,14 @@ springdoc:
   default-produces-media-type: application/json
 
 safetydata:
-  service-key: ${SAFETYDATA_SERVICE_KEY:mock_safety_key} # 콜론(:) 뒤 띄어쓰기 문법 교정
+  service-key: ${SAFETYDATA_SERVICE_KEY}
 
 gemini:
-  api-key: ${GEMINI_API_KEY:mock_gemini_key}
+  api-key: ${GEMINI_API_KEY}
 
 aws:
-  access-key: ${AWS_ACCESS_KEY:mock_aws_key}
-  secret-key: ${AWS_SECRET_KEY:mock_aws_secret}
+  access-key: ${AWS_ACCESS_KEY}
+  secret-key: ${AWS_SECRET_KEY}
   s3:
-    bucket: ${AWS_S3_BUCKET:peacelink-media}
-    region: ${AWS_S3_REGION:ap-northeast-2}
+    bucket: ${AWS_S3_BUCKET}
+    region: ${AWS_S3_REGION}

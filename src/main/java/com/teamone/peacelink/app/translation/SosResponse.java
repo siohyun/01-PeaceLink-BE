@@ -9,7 +9,7 @@ import java.util.UUID;
 @Builder
 public class SosResponse {
 
-    private Long requestId;
+    private UUID requestId;
     private String originalMessage;
     private String translatedMessage;
     private String targetLanguage;

@@ -1,4 +1,4 @@
-package com.teamone.peacelink.global.Exception;
+package com.teamone.peacelink.global.exception;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

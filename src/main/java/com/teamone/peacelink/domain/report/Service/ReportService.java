@@ -110,6 +110,7 @@ public class ReportService {
                 reportType, description, finalLat, finalLng);
         log.info("[제보] Grounding 검증 완료 - verified={}", groundingResult.verified());
 
+
         ReportStatus status = groundingResult.verified()
                 ? ReportStatus.VERIFIED : ReportStatus.REJECTED;
 

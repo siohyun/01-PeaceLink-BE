@@ -70,7 +70,7 @@ public class Report {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default
-    private ReportStatus status = ReportStatus.PENDING;
+    private ReportStatus status = ReportStatus.REJECTED;
 
     @CreationTimestamp
     private LocalDateTime createdAt;

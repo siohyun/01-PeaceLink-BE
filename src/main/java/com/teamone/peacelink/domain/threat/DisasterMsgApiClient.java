@@ -34,12 +34,14 @@ public class DisasterMsgApiClient {
         try {
             String today = LocalDate.now()
                     .format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+            String yesterday = LocalDate.now().minusDays(1)
+                    .format(DateTimeFormatter.ofPattern("yyyyMMdd"));
 
             List<DisasterMsgItem> result = fetch(today);
 
             if (result.isEmpty()) {
-                log.info("오늘 재난문자 없음 — 날짜 없이 전체 조회");
-                result = fetchWithoutDate();
+                log.info("오늘 재난문자 없음 — 어제 날짜로 재조회");
+                result = fetch(yesterday);  // ✅ fetchWithoutDate() 대신 어제 날짜 지정
             }
 
             cache = result;
@@ -47,7 +49,7 @@ public class DisasterMsgApiClient {
             return result;
 
         } catch (Exception e) {
-            log.warn("긴급재난문자 API 호출 실패 — 캐시 반환: {}", e.getMessage()); // ERROR → WARN
+            log.warn("긴급재난문자 API 호출 실패 — 캐시 반환: {}", e.getMessage());
             return cache;
         }
     }
@@ -102,6 +104,15 @@ public class DisasterMsgApiClient {
                     return !msg.contains("실종")
                             && !msg.contains("배회")
                             && !msg.contains("찾습니다");
+                })
+                // ✅ 최근 7일 이내 데이터만 허용
+                .filter(item -> {
+                    try {
+                        LocalDateTime dt = LocalDateTime.parse(item.getCreatedAt(), fmt);
+                        return dt.isAfter(LocalDateTime.now().minusDays(7));
+                    } catch (Exception e) {
+                        return false;  // 날짜 파싱 실패하면 제외
+                    }
                 })
                 .sorted((a, b) -> {
                     try {
