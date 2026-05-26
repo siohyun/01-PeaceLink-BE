@@ -1,4 +1,4 @@
-package com.teamone.peacelink.global.Config;
+package com.teamone.peacelink.global.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
