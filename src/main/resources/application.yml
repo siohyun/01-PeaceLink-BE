@@ -1,8 +1,10 @@
 spring:
   datasource:
-    url: ${DB_HOST}
-    username: root
+    url: ${DB_URL}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: ${DB_USER}
     password: ${DB_PASSWORD}
+
   jpa:
     hibernate:
       ddl-auto: update
@@ -49,5 +51,11 @@ aws:
   access-key: ${AWS_ACCESS_KEY}
   secret-key: ${AWS_SECRET_KEY}
   s3:
-    bucket: ${AWS_S3_BUCKET}    # 예: peacelink-media
-    region: ${AWS_S3_REGION}    # 예: ap-northeast-2
+    bucket: ${AWS_S3_BUCKET}
+    region: ${AWS_S3_REGION}
+
+  hugging face:
+    api:
+      token: ${HUGGING FACE_API_TOKEN}
+
+
