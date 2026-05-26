@@ -6,7 +6,7 @@ spring:
     name: our-backend-project
 
   datasource:
-    url: ${DB_HOST}
+    url: ${DB_URL}
     username: root
     password: ${DB_PASSWORD}
 
