@@ -1,4 +1,4 @@
-package com.teamone.peacelink.global.Exception;
+package com.teamone.peacelink.global.exception;
 
 public class NoiseTooLoudException extends RuntimeException {
     public NoiseTooLoudException(String message) {
