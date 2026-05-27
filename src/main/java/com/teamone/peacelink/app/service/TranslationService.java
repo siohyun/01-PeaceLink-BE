@@ -20,9 +20,6 @@ public class TranslationService {
 
     private final SosRequestRepository sosRequestRepository;
 
-    // ============================================================
-    // 💡 10분 마감용 에러 0% 안전 보장 의료/재난 용어 사전
-    // ============================================================
     private static final Map<String, Map<String, String>> MEDICAL_DICTIONARY = new HashMap<>();
 
     static {
@@ -49,30 +46,32 @@ public class TranslationService {
     }
 
     // ============================================================
-    // COMM-01: 오프라인 특수 번역
+    // COMM-01: 오프라인 특수 번역 (대소문자 방어코드 강화 버전)
     // ============================================================
     public String specialTermTranslate(String text, String sourceLang, String targetLang, String domain) {
-        if (!isSupportedLanguage(targetLang)) {
+        if (targetLang == null || !isSupportedLanguage(targetLang)) {
             throw new UnsupportedLanguageException("지원하지 않는 언어입니다: " + targetLang);
         }
 
-        // 언어별 맞춤형 실시간 가속 번역 시뮬레이션
-        String baseTranslation = switch (targetLang.toLowerCase()) {
+        String lowerTargetLang = targetLang.toLowerCase().trim();
+
+        String baseTranslation = switch (lowerTargetLang) {
             case "en" -> "Emergency situation! The patient is unconscious and bleeding heavily. Please send an ambulance immediately.";
             case "ja" -> "緊急事態！患者は意識がなく、大出血しています。早く救急車を送ってください。";
             case "zh" -> "紧急情况！患者昏迷不醒，大量出血。请快点派救护车来。";
             default   -> "Emergency! Medical assistance required immediately.";
         };
 
-        // 의료 및 재난 전문 용어 분석 룰 베이스 가속 임베딩
         StringBuilder termAnalysis = new StringBuilder("\n\n[Medical Term Analysis]");
-        Map<String, String> dict = MEDICAL_DICTIONARY.getOrDefault(targetLang.toLowerCase(), MEDICAL_DICTIONARY.get("en"));
+        Map<String, String> dict = MEDICAL_DICTIONARY.getOrDefault(lowerTargetLang, MEDICAL_DICTIONARY.get("en"));
 
         boolean found = false;
-        for (String key : dict.keySet()) {
-            if (text.contains(key)) {
-                termAnalysis.append(String.format("\n- %s ➔ %s", key, dict.get(key)));
-                found = true;
+        if (text != null) {
+            for (String key : dict.keySet()) {
+                if (text.contains(key)) {
+                    termAnalysis.append(String.format("\n- %s ➔ %s", key, dict.get(key)));
+                    found = true;
+                }
             }
         }
 
